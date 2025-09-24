@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import cloudinary
 from routes.events import events_router
 from routes.users import users_router
+from routes.genai import genai_router
 
 import os
 
@@ -19,7 +20,7 @@ app = FastAPI()
 # Include routers
 app.include_router(events_router)
 app.include_router(users_router)
-
+app.include_router(genai_router)
 
 # print(type(os.getenv("CLOUDINARY_NAME")))
 # print("API_KEY:", os.getenv("CLOUDINARY_API_KEY"))

@@ -5,6 +5,14 @@ from db import users_collection
 import bcrypt
 import jwt
 import os
+from datetime import datetime, timezone, timedelta
+from enum import Enum
+
+
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    HOST = "host"
+    GUEST = "guest"
 
 
 # Create users router
@@ -18,7 +26,8 @@ users_router = APIRouter()
 def register_user(
     username: Annotated[str, Form()],
     email: Annotated[EmailStr, Form()],
-    password: Annotated[str, Form(min_length=8)]):
+    password: Annotated[str, Form(min_length=8)],
+    role: Annotated[UserRole, Form()]= UserRole.GUEST):
     
     # Ensure user does not exist
     user_count = users_collection.count_documents(filter={"email": email})
@@ -30,7 +39,8 @@ def register_user(
     users_collection.insert_one({
         "username": username,
         "email": email,
-        "password": hashed_password
+        "password": hashed_password,
+        "role": role
     })
     # Return response
     return {"message": "User registered successfully!"}
@@ -57,7 +67,10 @@ def login_user(
     if not correct_password:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password!")
     # Generate for them an access token
-    encoded_jwt = jwt.encode(payload={"id": str(user_in_db["_id"])}, key=os.getenv("JWT_SECRET_KEY"), algorithm="HS256")
+    encoded_jwt = jwt.encode(payload={
+        "id": str(user_in_db["_id"]),
+        "exp": datetime.now(tz=timezone.utc) + timedelta(minutes=60)
+        }, key=os.getenv("JWT_SECRET_KEY"), algorithm="HS256")
     # Return response
     return {"message": "User logged in successfully!",
             "access_token":encoded_jwt}

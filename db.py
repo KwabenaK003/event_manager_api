@@ -10,4 +10,4 @@ event_manager_db = mongo_client["event_manager_db"]
 
 # Pick a collection to operate on
 events_collection = event_manager_db["events"]
-users_collection = event_manager_db["users"]
+users_collection = event_manager_db["users"] 
